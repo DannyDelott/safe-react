@@ -7,14 +7,14 @@ import { NOTIFICATIONS, enhanceSnackbarForAction } from 'src/logic/notifications
 import enqueueSnackbar from 'src/logic/notifications/store/actions/enqueueSnackbar'
 import { getProviderInfo, getWeb3 } from 'src/logic/wallets/getWeb3'
 import { makeProvider, ProviderProps } from 'src/logic/wallets/store/model/provider'
-import { trackGAEvent } from 'src/utils/googleAnalytics'
+import { trackAnalyticsEvent } from 'src/utils/googleAnalytics'
 
 export const processProviderResponse = (dispatch: Dispatch, provider: ProviderProps): void => {
   const walletRecord = makeProvider(provider)
   dispatch(addProvider(walletRecord))
 }
 
-const handleProviderNotification = async (provider: ProviderProps, dispatch: Dispatch<any>): Promise<void> => {
+const handleProviderNotification = (provider: ProviderProps, dispatch: Dispatch<any>): void => {
   const { available, loaded } = provider
 
   if (!loaded) {
@@ -32,7 +32,7 @@ const handleProviderNotification = async (provider: ProviderProps, dispatch: Dis
     // you SHOULD pass your own `key` in the options. `key` can be any sequence
     // of number or characters, but it has to be unique to a given snackbar.
 
-    trackGAEvent({
+    trackAnalyticsEvent({
       category: 'Wallets',
       action: 'Connect a wallet',
       label: provider.name,
@@ -42,10 +42,10 @@ const handleProviderNotification = async (provider: ProviderProps, dispatch: Dis
   }
 }
 
-export default async (providerName: string): Promise<(dispatch: Dispatch<any>) => Promise<void>> =>
+export default (providerName: string): ((dispatch: Dispatch<any>) => Promise<void>) =>
   async (dispatch: Dispatch<any>) => {
     const web3 = getWeb3()
     const providerInfo = await getProviderInfo(web3, providerName)
-    await handleProviderNotification(providerInfo, dispatch)
+    handleProviderNotification(providerInfo, dispatch)
     processProviderResponse(dispatch, providerInfo)
   }

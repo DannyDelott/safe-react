@@ -6,6 +6,7 @@ import { getGoogleAnalyticsTrackingID } from 'src/config'
 import { COOKIES_KEY } from 'src/logic/cookies/model/cookie'
 import { loadFromCookie, removeCookie } from 'src/logic/cookies/utils'
 import { IS_PRODUCTION } from './constants'
+import { capitalize } from './css'
 
 export const SAFE_NAVIGATION_EVENT = 'Safe Navigation'
 
@@ -18,11 +19,21 @@ export const COOKIES_LIST = [
 const IS_STAGING = getCurrentEnvironment() === 'staging'
 const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
 
-export const trackGAEvent: typeof ReactGA.event = (...args) => {
-  return shouldUseGoogleAnalytics ? ReactGA.event(...args) : console.info('[GA] - Event:', ...args)
+export const trackAnalyticsEvent = (event: Parameters<typeof ReactGA.event>[0]) => {
+  const chainName = getNetworkInfo().label
+
+  // action, category, label, etc. => eventAction, eventCategory, eventLabel, etc.
+  const fieldsObject: Parameters<typeof ReactGA.ga>[1] = Object.entries(event).reduce(
+    (acc, [key, value]) => ({ ...acc, [`event${capitalize(key)}`]: value }),
+    { hitType: 'event', chainName },
+  )
+
+  return shouldUseGoogleAnalytics
+    ? ReactGA.ga('send', fieldsObject)
+    : console.info('[GA] - Event:', { ...event, chainName })
 }
-const trackGAPageview: typeof ReactGA.pageview = (...args) => {
-  return shouldUseGoogleAnalytics ? ReactGA.pageview(...args) : console.info('[GA] - Pageview:', ...args)
+const trackAnalyticsPage: typeof ReactGA.pageview = (...args) => {
+  return shouldUseGoogleAnalytics ? ReactGA.pageview(...args) : console.info('[GA] - Page:', ...args)
 }
 
 let analyticsLoaded = false
@@ -34,15 +45,14 @@ export const loadGoogleAnalytics = (): void => {
   console.info(
     shouldUseGoogleAnalytics
       ? 'Loading Google Analytics...'
-      : 'Google Analytics will not load in the development environment, but log instead.',
+      : 'Google Analytics will not load in the development environment, but instead log.',
   )
 
   const gaTrackingId = getGoogleAnalyticsTrackingID()
-  const networkInfo = getNetworkInfo()
-  const customDimensions = {
+
+  const customDimensions: ReactGA.FieldsObject = {
     anonymizeIp: true,
-    appName: `Gnosis Safe Multisig (${networkInfo.label})`,
-    appId: `io.gnosis.safe.${networkInfo.label.toLowerCase()}`,
+    appName: `Gnosis Safe Web`,
     appVersion: process.env.REACT_APP_APP_VERSION,
   }
 
@@ -82,7 +92,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
   const trackPage = useCallback(
     (page) => {
       if (analyticsAllowed && analyticsLoaded) {
-        trackGAPageview(page)
+        trackAnalyticsPage(page)
       }
     },
     [analyticsAllowed],
@@ -91,7 +101,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
   const trackEvent = useCallback(
     (event: EventArgs) => {
       if (analyticsAllowed && analyticsLoaded) {
-        trackGAEvent(event)
+        trackAnalyticsEvent(event)
       }
     },
     [analyticsAllowed],
