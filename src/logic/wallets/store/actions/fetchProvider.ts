@@ -8,6 +8,7 @@ import { NOTIFICATIONS, enhanceSnackbarForAction } from 'src/logic/notifications
 import enqueueSnackbar from 'src/logic/notifications/store/actions/enqueueSnackbar'
 import { getProviderInfo, getWeb3 } from 'src/logic/wallets/getWeb3'
 import { makeProvider } from 'src/logic/wallets/store/model/provider'
+import { shouldUseGoogleAnalytics } from 'src/utils/googleAnalytics'
 
 export const processProviderResponse = (dispatch, provider) => {
   const walletRecord = makeProvider(provider)
@@ -32,11 +33,17 @@ const handleProviderNotification = (provider, dispatch) => {
     // you SHOULD pass your own `key` in the options. `key` can be any sequence
     // of number or characters, but it has to be unique to a given snackbar.
 
-    ReactGA.event({
+    const event = {
       category: 'Wallets',
       action: 'Connect a wallet',
       label: provider.name,
-    })
+    }
+
+    if (shouldUseGoogleAnalytics) {
+      ReactGA.event(event)
+    } else {
+      console.info('[GA] - Event:', event)
+    }
   } else {
     dispatch(enqueueSnackbar(enhanceSnackbarForAction(NOTIFICATIONS.UNLOCK_WALLET_MSG)))
   }

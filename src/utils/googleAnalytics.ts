@@ -16,7 +16,7 @@ export const COOKIES_LIST = [
 ]
 
 const IS_STAGING = getCurrentEnvironment() === 'staging'
-const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
+export const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
 
 let analyticsLoaded = false
 export const loadGoogleAnalytics = (): void => {
