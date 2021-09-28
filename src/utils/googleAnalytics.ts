@@ -5,6 +5,7 @@ import { getNetworkInfo } from 'src/config'
 import { getGoogleAnalyticsTrackingID } from 'src/config'
 import { COOKIES_KEY } from 'src/logic/cookies/model/cookie'
 import { loadFromCookie, removeCookie } from 'src/logic/cookies/utils'
+import { IS_PRODUCTION } from './constants'
 
 export const SAFE_NAVIGATION_EVENT = 'Safe Navigation'
 
@@ -19,22 +20,34 @@ export const loadGoogleAnalytics = (): void => {
   if (analyticsLoaded) {
     return
   }
-  // eslint-disable-next-line no-console
-  console.log('Loading google analytics...')
-  const trackingID = getGoogleAnalyticsTrackingID()
+
+  console.info(
+    IS_PRODUCTION
+      ? 'Loading Google Analytics...'
+      : 'Google Analytics will not load in the development environment, but log instead.',
+  )
+
+  const gaTrackingId = getGoogleAnalyticsTrackingID()
   const networkInfo = getNetworkInfo()
-  if (!trackingID) {
-    console.error('[GoogleAnalytics] - In order to use google analytics you need to add an trackingID')
-  } else {
-    ReactGA.initialize(trackingID)
-    ReactGA.set({
-      anonymizeIp: true,
-      appName: `Gnosis Safe Multisig (${networkInfo.label})`,
-      appId: `io.gnosis.safe.${networkInfo.label.toLowerCase()}`,
-      appVersion: process.env.REACT_APP_APP_VERSION,
-    })
-    analyticsLoaded = true
+  const customDimensions = {
+    anonymizeIp: true,
+    appName: `Gnosis Safe Multisig (${networkInfo.label})`,
+    appId: `io.gnosis.safe.${networkInfo.label.toLowerCase()}`,
+    appVersion: process.env.REACT_APP_APP_VERSION,
   }
+
+  if (IS_PRODUCTION) {
+    if (!gaTrackingId) {
+      console.error('[Google Analytics] - In order to use Google Analytics you need to add a tracking ID.')
+    } else {
+      ReactGA.initialize(gaTrackingId)
+      ReactGA.set(customDimensions)
+    }
+  } else {
+    console.info('[GA] - Custom dimensions:', customDimensions)
+  }
+
+  analyticsLoaded = true
 }
 
 type UseAnalyticsResponse = {
@@ -61,7 +74,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
       if (!analyticsAllowed || !analyticsLoaded) {
         return
       }
-      ReactGA.pageview(page)
+      return IS_PRODUCTION ? ReactGA.pageview(page) : console.info('[GA] - Pageview:', page)
     },
     [analyticsAllowed],
   )
@@ -71,7 +84,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
       if (!analyticsAllowed || !analyticsLoaded) {
         return
       }
-      ReactGA.event(event)
+      return IS_PRODUCTION ? ReactGA.event(event) : console.info('[GA] - Event:', event)
     },
     [analyticsAllowed],
   )
