@@ -48,7 +48,7 @@ export const loadGoogleAnalytics = (): void => {
 
   if (shouldUseGoogleAnalytics) {
     if (!gaTrackingId) {
-      console.error('[Google Analytics] - In order to use Google Analytics you need to add a tracking ID.')
+      console.error('In order to use Google Analytics you need to add a tracking ID.')
     } else {
       ReactGA.initialize(gaTrackingId)
       ReactGA.set(customDimensions)
