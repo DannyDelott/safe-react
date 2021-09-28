@@ -16,7 +16,14 @@ export const COOKIES_LIST = [
 ]
 
 const IS_STAGING = getCurrentEnvironment() === 'staging'
-export const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
+const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
+
+export const trackGAEvent: typeof ReactGA.event = (...args) => {
+  return shouldUseGoogleAnalytics ? ReactGA.event(...args) : console.info('[GA] - Event:', ...args)
+}
+const trackGAPageview: typeof ReactGA.pageview = (...args) => {
+  return shouldUseGoogleAnalytics ? ReactGA.pageview(...args) : console.info('[GA] - Pageview:', ...args)
+}
 
 let analyticsLoaded = false
 export const loadGoogleAnalytics = (): void => {
@@ -74,20 +81,18 @@ export const useAnalytics = (): UseAnalyticsResponse => {
 
   const trackPage = useCallback(
     (page) => {
-      if (!analyticsAllowed || !analyticsLoaded) {
-        return
+      if (analyticsAllowed && analyticsLoaded) {
+        trackGAPageview(page)
       }
-      return shouldUseGoogleAnalytics ? ReactGA.pageview(page) : console.info('[GA] - Pageview:', page)
     },
     [analyticsAllowed],
   )
 
   const trackEvent = useCallback(
     (event: EventArgs) => {
-      if (!analyticsAllowed || !analyticsLoaded) {
-        return
+      if (analyticsAllowed && analyticsLoaded) {
+        trackGAEvent(event)
       }
-      return shouldUseGoogleAnalytics ? ReactGA.event(event) : console.info('[GA] - Event:', event)
     },
     [analyticsAllowed],
   )
