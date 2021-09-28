@@ -43,7 +43,7 @@ export const usesInfuraRPC = [ETHEREUM_NETWORK.MAINNET, ETHEREUM_NETWORK.RINKEBY
   getNetworkId(),
 )
 
-const getCurrentEnvironment = (): string => {
+export const getCurrentEnvironment = (): 'test' | 'production' | 'staging' | 'dev' => {
   switch (NODE_ENV) {
     case 'test': {
       return 'test'

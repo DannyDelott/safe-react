@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import ReactGA, { EventArgs } from 'react-ga'
-import { getNetworkInfo } from 'src/config'
+import { getCurrentEnvironment, getNetworkInfo } from 'src/config'
 
 import { getGoogleAnalyticsTrackingID } from 'src/config'
 import { COOKIES_KEY } from 'src/logic/cookies/model/cookie'
@@ -15,6 +15,9 @@ export const COOKIES_LIST = [
   { name: '_gid', path: '/' },
 ]
 
+const IS_STAGING = getCurrentEnvironment() === 'staging'
+const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
+
 let analyticsLoaded = false
 export const loadGoogleAnalytics = (): void => {
   if (analyticsLoaded) {
@@ -22,7 +25,7 @@ export const loadGoogleAnalytics = (): void => {
   }
 
   console.info(
-    IS_PRODUCTION
+    shouldUseGoogleAnalytics
       ? 'Loading Google Analytics...'
       : 'Google Analytics will not load in the development environment, but log instead.',
   )
@@ -36,7 +39,7 @@ export const loadGoogleAnalytics = (): void => {
     appVersion: process.env.REACT_APP_APP_VERSION,
   }
 
-  if (IS_PRODUCTION) {
+  if (shouldUseGoogleAnalytics) {
     if (!gaTrackingId) {
       console.error('[Google Analytics] - In order to use Google Analytics you need to add a tracking ID.')
     } else {
@@ -74,7 +77,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
       if (!analyticsAllowed || !analyticsLoaded) {
         return
       }
-      return IS_PRODUCTION ? ReactGA.pageview(page) : console.info('[GA] - Pageview:', page)
+      return shouldUseGoogleAnalytics ? ReactGA.pageview(page) : console.info('[GA] - Pageview:', page)
     },
     [analyticsAllowed],
   )
@@ -84,7 +87,7 @@ export const useAnalytics = (): UseAnalyticsResponse => {
       if (!analyticsAllowed || !analyticsLoaded) {
         return
       }
-      return IS_PRODUCTION ? ReactGA.event(event) : console.info('[GA] - Event:', event)
+      return shouldUseGoogleAnalytics ? ReactGA.event(event) : console.info('[GA] - Event:', event)
     },
     [analyticsAllowed],
   )
