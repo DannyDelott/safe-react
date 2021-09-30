@@ -67,6 +67,11 @@ jobs:
           rm -rf .yarncache
           yarn cache clean
 
+      # Set PR flag
+      - name: Set dev flag for dev PR
+        run: echo "REACT_APP_ENV=dev" >> $GITHUB_ENV
+        if: github.ref != 'refs/heads/main'
+
       # Set production flag
       - name: Set production flag for release PR or tagged build
         run: echo "REACT_APP_ENV=production" >> $GITHUB_ENV

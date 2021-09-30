@@ -44,15 +44,17 @@ export const usesInfuraRPC = [ETHEREUM_NETWORK.MAINNET, ETHEREUM_NETWORK.RINKEBY
 )
 
 export const getCurrentEnvironment = (): 'test' | 'production' | 'staging' | 'dev' => {
-  switch (NODE_ENV) {
+  switch (APP_ENV) {
     case 'test': {
       return 'test'
     }
     case 'production': {
       return APP_ENV === 'production' ? 'production' : 'staging'
     }
+    case 'dev':
     default: {
-      return 'dev'
+      // We need to check NODE_ENV calling jest outside of scripts
+      return NODE_ENV === 'test' ? 'test' : 'dev'
     }
   }
 }

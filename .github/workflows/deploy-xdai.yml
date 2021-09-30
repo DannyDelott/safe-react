@@ -10,7 +10,7 @@ on:
       - main
   # Launches build when release is published
   release:
-      types: [published]
+    types: [published]
 
 env:
   REPO_NAME_ALPHANUMERIC: safereact
@@ -45,7 +45,6 @@ jobs:
         run: |
           for apt_file in `grep -lr microsoft /etc/apt/sources.list.d/`; do sudo rm $apt_file; done
       - uses: actions/checkout@v2
-
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
@@ -67,6 +66,11 @@ jobs:
           yarn install --cache-folder ./.yarncache --frozen-lockfile
           rm -rf .yarncache
           yarn cache clean
+
+      # Set PR flag
+      - name: Set dev flag for dev PR
+        run: echo "REACT_APP_ENV=dev" >> $GITHUB_ENV
+        if: github.ref != 'refs/heads/main'
 
       # Set production flag
       - name: Set production flag for release PR or tagged build
@@ -139,7 +143,7 @@ jobs:
           PROD_DEPLOYMENT_HOOK_URL: ${{ secrets.PROD_DEPLOYMENT_HOOK_URL }}
           VERSION_TAG: ${{ github.event.release.tag_name }}
 
-     # Upload Sentry source maps when sending to staging or production
+      # Upload Sentry source maps when sending to staging or production
       - run: yarn sentry-upload-sourcemaps
         if: success() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         env:
