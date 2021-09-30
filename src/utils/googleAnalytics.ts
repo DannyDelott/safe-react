@@ -19,7 +19,7 @@ export const COOKIES_LIST = [
 const IS_STAGING = getCurrentEnvironment() === 'staging'
 const shouldUseGoogleAnalytics = IS_PRODUCTION || IS_STAGING
 
-export const trackAnalyticsEvent = (event: Parameters<typeof ReactGA.event>[0]) => {
+export const trackAnalyticsEvent = (event: Parameters<typeof ReactGA.event>[0]): void => {
   const chainName = getNetworkInfo().label
 
   // action, category, label, etc. => eventAction, eventCategory, eventLabel, etc.
